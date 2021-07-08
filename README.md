@@ -156,3 +156,29 @@ const Cart: React.FC = ({id, addCard}) {
 
 export default withApp(Cart)
 ```
+
+## 自定义钩子
+
+### 自定义钩子-定义
+
+```js
+import {appSetStateContext} from './provider'
+export const useAddCart = () => {
+  const setState = useContext(appSetStateContext)
+  const addCart = (id: number, name: string) => {
+    // TODO
+  }
+  return addCart
+}
+```
+
+### 自定义钩子-使用
+
+```js
+import {useAddCart} from './useApp'
+
+const addCart = useAddCart()
+return (
+  <div onClick={() => addCart(id)}></div>
+)
+```
