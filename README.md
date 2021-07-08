@@ -1,46 +1,158 @@
-# Getting Started with Create React App
+# React&TS notes
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## create a project
 
-## Available Scripts
+```bash
+~ npx create-react-app my-app --template typescript
+```
 
-In the project directory, you can run:
+## class组件
 
-### `yarn start`
+```js
+import React from 'react'
+interface Props {}
+interface State {
+  count: string
+}
+class App extends React.Component<Props, State> {
+  constructor(props: Props) {
+    super(props)
+    this.state = {
+      count: 0
+    }
+  }
+  render() {
+    return (
+      <div>{this.state.count}</div>
+    )
+  }
+}
+```
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## function组件
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+```js
+import React, {useState, useEffect} from 'react'
+export const App: React.FC = (props) => {
+  const [count, setCount] = useState(0)
+  useEffect(() => {
+    document.title = `You've clicked ${count} times.`
+  }, [count])
+  return (
+    <div>{count}</div>
+  )
+}
+```
 
-### `yarn test`
+## context
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### 创建-Provider
 
-### `yarn build`
+```js
+import React, {useState} from 'react'
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+interface AppDefalutVal {
+  username: string,
+  cart: { items: {id: number, name: string}[] }
+}
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+const defaultVal: AppDefaultVal = {
+  username: 'cheng5',
+  cart: []
+}
+// 数据context
+export const appContext = React.createContent(defaultVal)
+// 方法context
+export const appSetStateContext = React.createConrext<React.Dispatch<React.SetStateAction<AppStateValue>> | undefined>(undefined)
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+export const AppProvider: React.FC = (props) => {
+  const [state, setState] = useState(defaultVal)
+  return (
+    <appContext.Provider value={state}>
+      <appSetStateContext.Provider value={setState}>
+        {props.children}
+      </appSetStateContext.Provider>
+    </appContext.Provider>
+  )
+}
+```
 
-### `yarn eject`
+### 外层组件
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+```js
+import {AppProvider} from './AppProvider'
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+render(
+  <AppProvider>
+    <App />
+  </AppProvider>  
+)
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+### Consumer
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+```js
+import {AppContext} from '../provider'
 
-## Learn More
+return (
+  <AppContext.Consumer>
+    {value => (
+      <div>{value.username}</div>
+    )}
+  </AppContext.Consumer>
+)
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+### useContext
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+```js
+import {useContext} from 'react'
+import {AppContext} from '../provider'
+
+const value = useContext(AppContext)
+
+return (
+  <div>{value.username}</div>
+)
+```
+
+## 高阶函数
+
+> It returns a component whose argument is component, and it's name started with 'with'.
+
+### 定义
+
+```js
+import React from 'react'
+import {CartProps} from './Cart'
+
+export const withApp = (ChildComponent: React.ComponentType<CartProps>) {
+  return (props: any) {
+    // logic
+    const addCart = (id: number) => {
+      // TODO
+    }
+    return <ChildComponent {...props} addCart={addCart} >
+  }
+}
+```
+
+### 使用
+
+```js
+import React from 'react'
+import {withApp} from './withapp'
+
+interface Cart {
+  id: number,
+  addCard: (id) => void
+}
+
+const Cart: React.FC = ({id, addCard}) {
+  retutn (
+    <button onClick={() => addCard(id)}>add</button>
+  )
+}
+
+export default withApp(Cart)
+```
