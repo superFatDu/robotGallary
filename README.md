@@ -182,3 +182,80 @@ return (
   <div onClick={() => addCart(id)}></div>
 )
 ```
+
+## 备注
+
+### AppState.tsx
+
+```js
+import React, { useState } from "react";
+
+interface AppStateValue {
+  username: string,
+  shoppingCart: { items: { id: number, name: string }[] }
+}
+
+const defaultVal: AppStateValue = {
+  username: "cheng5",
+  shoppingCart: { items: [] }
+}
+
+export const appContext = React.createContext(defaultVal)
+export const appSetStateContext = React.createContext<React.Dispatch<React.SetStateAction<AppStateValue>> | undefined>(undefined)
+
+export const AppStateProvider: React.FC = (props) => {
+  const [state, setState] = useState(defaultVal)
+  return (
+    <appContext.Provider value={state}>
+      <appSetStateContext.Provider value={setState}>
+        {props.children}
+      </appSetStateContext.Provider>
+    </appContext.Provider>
+  )
+}
+```
+
+### AddToCart.tsx
+
+```js
+import React from "react";
+import { useContext } from "react";
+import { appSetStateContext } from '../AppState'
+import { RobotProps } from "./Robot";
+
+export const withAddToCart = (ChildComponent: React.ComponentType<RobotProps>) => {
+  return (props: any) => {
+    const setState = useContext(appSetStateContext)
+    const addToCart = (id: number, name: string) => {
+      if (setState) {
+        setState(state => {
+          return {
+            ...state,
+            shoppingCart: {
+              items: [...state.shoppingCart.items, { id, name }]
+            }
+          }
+        })
+      }
+    }
+    return <ChildComponent {...props} addToCart={addToCart} />
+  }
+}
+
+export const useAddToCart = () => {
+  const setState = useContext(appSetStateContext)
+  const addToCart = (id: number, name: string) => {
+    if (setState) {
+      setState(state => {
+        return {
+          ...state,
+          shoppingCart: {
+            items: [...state.shoppingCart.items, { id, name }]
+          }
+        }
+      })
+    }
+  }
+  return addToCart
+}
+```
